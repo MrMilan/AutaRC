@@ -1,7 +1,15 @@
+install.packages("e1071")
+library(e1071)
+library(rpart)
 
 rm(list=ls()) #mazani promenych
 cat("\014")  #mazani konzole
-cars <- read.csv("~/Schule/FEL/21rocnik/DVZ/Auta2/cars.csv")
+carsa <- read.csv("~/Scholla/___FEL/21rocnik/DVZ/AutaRC/cars.csv")
+
+cars <- carsa
+
+cars <- na.omit(cars) #odstraneni nulovych
+cars.label <- cars
 
 cars$Manufacturer <- as.numeric(cars$Manufacturer)
 cars$Model <- as.numeric(cars$Model)
@@ -30,10 +38,21 @@ cars$Luggage.room <- as.numeric(cars$Luggage.room)
 cars$Weight <- as.numeric(cars$Weight)
 cars$Origin <- as.numeric(cars$Origin)
 
+cars.use = cars[,-c(1,2,4,6,20,22,26)]#zbav se podezrelich
 
-cars <- na.omit(cars) #odstraneni nulovych
+index     <- 1:nrow(cars.use)
+testindex <- sample(index, trunc(length(index)/3))# rozhazej data
+testset   <- cars.use[testindex,]
+trainset  <- cars.use[-testindex,]
 
-cars <- scale(cars) #normalizace
+## svm
+svm.model <- svm(Type ~ ., data = trainset, cost = 100, gamma = 1)
+svm.pred  <- predict(svm.model, testset[,-10])
 
-#kmeans(cars, centers, iter.max = 10, nstart = 1)
-kakm <- kmeans(cars,4)
+## rpart
+rpart.model <- rpart(Type ~ ., data = trainset)
+rpart.pred  <- predict(rpart.model, testset[,-10], type = "class")
+
+
+
+
